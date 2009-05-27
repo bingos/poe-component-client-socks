@@ -1,6 +1,9 @@
 POE::Component::Client::SOCKS
 =============================
 
+1.00	Wed May 27 22:44:35 BST 2009
+	- Tidy POD and update Makefile.PL
+
 0.10	Mon May 19 17:31:37 BST 2008
 	- removed kwalitee test
 	- added license information

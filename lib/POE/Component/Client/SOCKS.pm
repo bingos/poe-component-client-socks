@@ -7,7 +7,7 @@ use Socket;
 use POE qw(Wheel::SocketFactory Filter::Stream Wheel::ReadWrite);
 use vars qw($VERSION);
 
-$VERSION = '0.10';
+$VERSION = '1.00';
 
 sub spawn {
   my $package = shift;
@@ -431,7 +431,7 @@ of SOCKS connections on your behalf. Or you may use 'connect' and 'bind' to brok
 
 =over
 
-=item spawn
+=item C<spawn>
 
 Creates a new POE::Component::Client::SOCKS session that may be used lots of times. Takes the following optional 
 parameters:
@@ -441,7 +441,7 @@ parameters:
 
 Returns an object.
 
-=item connect
+=item C<connect>
 
 Creates a one-shot POE::Component::Client::SOCKS session that will connect to a SOCKS server and negotiate a 
 CONNECT. Takes the following parameters ( mandatory ones are indicated ):
@@ -455,7 +455,7 @@ CONNECT. Takes the following parameters ( mandatory ones are indicated ):
 
 Takes any number of arbitary parameters that will passed through to the SuccessEvent/FailureEvent. Please use underscore prefixes to avoid future API changes.
 
-=item bind
+=item C<bind>
 
 Creates a one-shot POE::Component::Client::SOCKS session that will connect to a SOCKS server and negotiate a 
 BIND. Takes the following parameters ( mandatory ones are indicated ):
@@ -475,7 +475,7 @@ Takes any number of arbitary parameters that will passed through to the SuccessE
 
 =over
 
-=item connect
+=item C<connect>
 
 Connect to a SOCKS server and negotiate a 
 CONNECT. Takes the following parameters ( mandatory ones are indicated ):
@@ -489,7 +489,7 @@ CONNECT. Takes the following parameters ( mandatory ones are indicated ):
 
 Takes any number of arbitary parameters that will passed through to the SuccessEvent/FailureEvent. Please use underscore prefixes to avoid future API changes.
 
-=item bind
+=item C<bind>
 
 Connect to a SOCKS server and negotiate a 
 BIND. Takes the following parameters ( mandatory ones are indicated ):
@@ -503,11 +503,11 @@ BIND. Takes the following parameters ( mandatory ones are indicated ):
 
 Takes any number of arbitary parameters that will passed through to the SuccessEvent/FailureEvent. Please use underscore prefixes to avoid future API changes.
 
-=item shutdown
+=item C<shutdown>
 
 Terminates the component. Disconnects any pending SOCKS requests.
 
-=item session_id
+=item C<session_id>
 
 =back
 
@@ -515,7 +515,7 @@ Terminates the component. Disconnects any pending SOCKS requests.
 
 =over
 
-=item connect
+=item C<connect>
 
 Connect to a SOCKS server and negotiate a 
 CONNECT. Takes the following parameters ( mandatory ones are indicated ):
@@ -529,7 +529,7 @@ CONNECT. Takes the following parameters ( mandatory ones are indicated ):
 
 Takes any number of arbitary parameters that will passed through to the SuccessEvent/FailureEvent. Please use underscore prefixes to avoid future API changes.
 
-=item bind
+=item C<bind>
 
 Connect to a SOCKS server and negotiate a 
 BIND. Takes the following parameters ( mandatory ones are indicated ):
@@ -543,7 +543,7 @@ BIND. Takes the following parameters ( mandatory ones are indicated ):
 
 Takes any number of arbitary parameters that will passed through to the SuccessEvent/FailureEvent. Please use underscore prefixes to avoid future API changes.
 
-=item shutdown
+=item C<shutdown>
 
 Terminates the component. Disconnects any pending SOCKS requests.
 
@@ -558,7 +558,7 @@ Any arbitary parameters passed though will be in the returned hashref.
 
 =over
 
-=item SuccessEvent
+=item C<SuccessEvent>
 
 All the parameters passed to 'connect' or 'bind' will be present, plus:
 
@@ -569,7 +569,7 @@ All the parameters passed to 'connect' or 'bind' will be present, plus:
 For a BIND, the dest IP and the dest port are the address and port that the SOCKS server has opened for 
 listening.
 
-=item FailureEvent
+=item C<FailureEvent>
 
 Generated if something went wrong, either a connection could not be established with the SOCKS server or
 the SOCKS server rejected our request.
@@ -590,11 +590,11 @@ If the SOCKS server rejected our request for some reason the following will exis
 
 =head1 AUTHOR
 
-Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
+Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
 
 =head1 LICENSE
 
-Copyright C<(c)> Chris Williams.
+Copyright E<copy> Chris Williams.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
@@ -605,3 +605,5 @@ L<http://socks.permeo.com/protocol/socks4.protocol>
 L<http://socks.permeo.com/protocol/socks4a.protocol>
 
 L<POE::Wheel::SocketFactory>
+
+=cut

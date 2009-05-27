@@ -2,6 +2,118 @@ NAME
     POE::Component::Client::SOCKS - SOCKS enable any POE Component
 
 SYNOPSIS
+    Spawning a SOCKS broker:
+
+       use strict;
+       use POE qw(Component::Client::SOCKS Wheel::ReadWrite Filter::Line);
+       use Data::Dumper;
+   
+       my $poco = POE::Component::Client::SOCKS->spawn( options => { trace => 0 } );
+   
+       POE::Session->create(
+            package_states => [
+              'main' => [ qw(_start _success _failed _conn_input _conn_error) ],
+            ],
+            heap => { sockify => $poco },
+            options => { trace => 0 },
+       );
+   
+       $poe_kernel->run();
+       exit 0;
+   
+       sub _start {
+         my ($kernel,$heap) = @_[KERNEL,HEAP];
+         $heap->{sockify}->connect( 
+            SocksProxy => '127.0.0.1',
+            RemoteAddress => 'cou.ch',
+            RemotePort => 6667,
+            SuccessEvent => '_success',
+            FailureEvent => '_failed',
+         );
+         return;
+       }
+   
+       sub _success {
+         my ($heap,$args) = @_[HEAP,ARG0];
+         warn Dumper( $args );
+         $heap->{wheel} = POE::Wheel::ReadWrite->new(
+            Handle => $args->{socket},
+            Filter => POE::Filter::Line->new(),
+            InputEvent => '_conn_input',
+            ErrorEvent => '_conn_error',
+         );
+         return;
+       }
+   
+       sub _failed {
+         warn Dumper( $_[ARG0] );
+         return;
+       }
+   
+       sub _conn_input {
+         warn $_[ARG0], "\n";
+         return;
+       }
+   
+       sub _conn_error {
+         delete $_[HEAP]->{wheel};
+         return;
+       }
+
+    A one shot CONNECT request:
+
+       use strict;
+       use POE qw(Component::Client::SOCKS Wheel::ReadWrite Filter::Line);
+       use Data::Dumper;
+   
+       POE::Session->create(
+            package_states => [
+              'main' => [ qw(_start _success _failed _conn_input _conn_error) ],
+            ],
+       );
+   
+       $poe_kernel->run();
+       exit 0;
+   
+       sub _start {
+         my ($kernel,$heap) = @_[KERNEL,HEAP];
+         POE::Component::Client::SOCKS->connect( 
+            SocksProxy => '127.0.0.1',
+            RemoteAddress => 'cou.ch',
+            RemotePort => 6667,
+            SuccessEvent => '_success',
+            FailureEvent => '_failed',
+         );
+         return;
+       }
+   
+       sub _success {
+         my ($heap,$args) = @_[HEAP,ARG0];
+         warn Dumper( $args );
+         $heap->{wheel} = POE::Wheel::ReadWrite->new(
+            Handle => $args->{socket},
+            Filter => POE::Filter::Line->new(),
+            InputEvent => '_conn_input',
+            ErrorEvent => '_conn_error',
+         );
+         return;
+       }
+   
+       sub _failed {
+         warn Dumper( $_[ARG0] );
+         return;
+       }
+   
+       sub _conn_input {
+         warn $_[ARG0], "\n";
+         return;
+       }
+   
+       sub _conn_error {
+         delete $_[HEAP]->{wheel};
+         return;
+       }
+
 DESCRIPTION
     POE::Component::Client::SOCKS provides SOCKSification services to other
     POE sessions and components. It accepts connection requests and deals
@@ -23,7 +135,7 @@ CONSTRUCTORS
 
       POE::Component::Client::SOCKS->bind( ... );
 
-    spawn
+    "spawn"
         Creates a new POE::Component::Client::SOCKS session that may be used
         lots of times. Takes the following optional parameters:
 
@@ -32,7 +144,7 @@ CONSTRUCTORS
 
         Returns an object.
 
-    connect
+    "connect"
         Creates a one-shot POE::Component::Client::SOCKS session that will
         connect to a SOCKS server and negotiate a CONNECT. Takes the
         following parameters ( mandatory ones are indicated ):
@@ -48,7 +160,7 @@ CONSTRUCTORS
         the SuccessEvent/FailureEvent. Please use underscore prefixes to
         avoid future API changes.
 
-    bind
+    "bind"
         Creates a one-shot POE::Component::Client::SOCKS session that will
         connect to a SOCKS server and negotiate a BIND. Takes the following
         parameters ( mandatory ones are indicated ):
@@ -65,7 +177,7 @@ CONSTRUCTORS
         avoid future API changes.
 
 METHODS
-    connect
+    "connect"
         Connect to a SOCKS server and negotiate a CONNECT. Takes the
         following parameters ( mandatory ones are indicated ):
 
@@ -80,7 +192,7 @@ METHODS
         the SuccessEvent/FailureEvent. Please use underscore prefixes to
         avoid future API changes.
 
-    bind
+    "bind"
         Connect to a SOCKS server and negotiate a BIND. Takes the following
         parameters ( mandatory ones are indicated ):
 
@@ -95,13 +207,13 @@ METHODS
         the SuccessEvent/FailureEvent. Please use underscore prefixes to
         avoid future API changes.
 
-    shutdown
+    "shutdown"
         Terminates the component. Disconnects any pending SOCKS requests.
 
-    session_id
+    "session_id"
 
 INPUT EVENTS
-    connect
+    "connect"
         Connect to a SOCKS server and negotiate a CONNECT. Takes the
         following parameters ( mandatory ones are indicated ):
 
@@ -116,7 +228,7 @@ INPUT EVENTS
         the SuccessEvent/FailureEvent. Please use underscore prefixes to
         avoid future API changes.
 
-    bind
+    "bind"
         Connect to a SOCKS server and negotiate a BIND. Takes the following
         parameters ( mandatory ones are indicated ):
 
@@ -131,7 +243,7 @@ INPUT EVENTS
         the SuccessEvent/FailureEvent. Please use underscore prefixes to
         avoid future API changes.
 
-    shutdown
+    "shutdown"
         Terminates the component. Disconnects any pending SOCKS requests.
 
 OUTPUT EVENTS
@@ -141,7 +253,7 @@ OUTPUT EVENTS
 
     Any arbitary parameters passed though will be in the returned hashref.
 
-    SuccessEvent
+    "SuccessEvent"
         All the parameters passed to 'connect' or 'bind' will be present,
         plus:
 
@@ -152,7 +264,7 @@ OUTPUT EVENTS
         For a BIND, the dest IP and the dest port are the address and port
         that the SOCKS server has opened for listening.
 
-    FailureEvent
+    "FailureEvent"
         Generated if something went wrong, either a connection could not be
         established with the SOCKS server or the SOCKS server rejected our
         request.
@@ -172,7 +284,13 @@ OUTPUT EVENTS
                          request.
 
 AUTHOR
-    Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
+    Chris "BinGOs" Williams <chris@bingosnet.co.uk>
+
+LICENSE
+    Copyright © Chris Williams.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
 
 SEE ALSO
     <http://socks.permeo.com/protocol/socks4.protocol>
