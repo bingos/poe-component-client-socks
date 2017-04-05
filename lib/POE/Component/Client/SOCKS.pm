@@ -1,13 +1,12 @@
 package POE::Component::Client::SOCKS;
 
+#ABSTRACT: SOCKS enable any POE Component
+
 use strict;
 use warnings;
 use Carp;
 use Socket;
 use POE qw(Wheel::SocketFactory Filter::Stream Wheel::ReadWrite);
-use vars qw($VERSION);
-
-$VERSION = '1.00';
 
 sub spawn {
   my $package = shift;
@@ -75,12 +74,12 @@ sub _create {
 		      connect  => '_command',
 		      bind     => '_command',
 	   },
-	   $self => [qw(_start 
+	   $self => [qw(_start
 			_disconnect
-			_create_socket 
-			_sock_failed 
-			_sock_up 
-			_conn_input 
+			_create_socket
+			_sock_failed
+			_sock_up
+			_conn_input
 			_conn_error) ],
 	],
 	heap => $self,
@@ -191,13 +190,13 @@ sub _command {
 sub _create_socket {
   my ($kernel,$self,$args) = @_[KERNEL,OBJECT,ARG0];
   my $factory = POE::Wheel::SocketFactory->new(
-    SocketDomain   => AF_INET,           
-    SocketType     => SOCK_STREAM,        
-    SocketProtocol => 'tcp',               
+    SocketDomain   => AF_INET,
+    SocketType     => SOCK_STREAM,
+    SocketProtocol => 'tcp',
     RemoteAddress  => $args->{socksproxy},
-    RemotePort     => $args->{socksport} || 1080,       
-    SuccessEvent   => '_sock_up',    
-    FailureEvent   => '_sock_failed',     
+    RemotePort     => $args->{socksport} || 1080,
+    SuccessEvent   => '_sock_up',
+    FailureEvent   => '_sock_failed',
   );
   $args->{factory} = $factory;
   $self->{socks}->{ $factory->ID } = $args;
@@ -289,12 +288,9 @@ sub _disconnect {
   return;
 }
 
-1;
-__END__
+'SOCKS it to me!';
 
-=head1 NAME
-
-POE::Component::Client::SOCKS - SOCKS enable any POE Component
+=pod
 
 =head1 SYNOPSIS
 
@@ -303,54 +299,54 @@ Spawning a SOCKS broker:
    use strict;
    use POE qw(Component::Client::SOCKS Wheel::ReadWrite Filter::Line);
    use Data::Dumper;
-   
+
    my $poco = POE::Component::Client::SOCKS->spawn( options => { trace => 0 } );
-   
+
    POE::Session->create(
-   	package_states => [
-   	  'main' => [ qw(_start _success _failed _conn_input _conn_error) ],
-   	],
-   	heap => { sockify => $poco },
-   	options => { trace => 0 },
+	  package_states => [
+      'main' => [ qw(_start _success _failed _conn_input _conn_error) ],
+    ],
+    heap => { sockify => $poco },
+    options => { trace => 0 },
    );
-   
+
    $poe_kernel->run();
    exit 0;
-   
+
    sub _start {
      my ($kernel,$heap) = @_[KERNEL,HEAP];
      $heap->{sockify}->connect( 
-   	SocksProxy => '127.0.0.1',
-   	RemoteAddress => 'cou.ch',
-   	RemotePort => 6667,
-   	SuccessEvent => '_success',
-   	FailureEvent => '_failed',
+      SocksProxy => '127.0.0.1',
+      RemoteAddress => 'cou.ch',
+      RemotePort => 6667,
+      SuccessEvent => '_success',
+      FailureEvent => '_failed',
      );
      return;
    }
-   
+
    sub _success {
      my ($heap,$args) = @_[HEAP,ARG0];
      warn Dumper( $args );
      $heap->{wheel} = POE::Wheel::ReadWrite->new(
-   	Handle => $args->{socket},
-   	Filter => POE::Filter::Line->new(),
-   	InputEvent => '_conn_input',
-   	ErrorEvent => '_conn_error',
+      Handle => $args->{socket},
+      Filter => POE::Filter::Line->new(),
+      InputEvent => '_conn_input',
+      ErrorEvent => '_conn_error',
      );
      return;
    }
-   
+
    sub _failed {
      warn Dumper( $_[ARG0] );
      return;
    }
-   
+
    sub _conn_input {
      warn $_[ARG0], "\n";
      return;
    }
-   
+
    sub _conn_error {
      delete $_[HEAP]->{wheel};
      return;
@@ -361,59 +357,59 @@ A one shot CONNECT request:
    use strict;
    use POE qw(Component::Client::SOCKS Wheel::ReadWrite Filter::Line);
    use Data::Dumper;
-   
+
    POE::Session->create(
-   	package_states => [
-   	  'main' => [ qw(_start _success _failed _conn_input _conn_error) ],
-   	],
+    package_states => [
+      'main' => [ qw(_start _success _failed _conn_input _conn_error) ],
+    ],
    );
-   
+
    $poe_kernel->run();
    exit 0;
-   
+
    sub _start {
      my ($kernel,$heap) = @_[KERNEL,HEAP];
      POE::Component::Client::SOCKS->connect( 
-   	SocksProxy => '127.0.0.1',
-   	RemoteAddress => 'cou.ch',
-   	RemotePort => 6667,
-   	SuccessEvent => '_success',
-   	FailureEvent => '_failed',
+      SocksProxy => '127.0.0.1',
+      RemoteAddress => 'cou.ch',
+      RemotePort => 6667,
+      SuccessEvent => '_success',
+      FailureEvent => '_failed',
      );
      return;
    }
-   
+
    sub _success {
      my ($heap,$args) = @_[HEAP,ARG0];
      warn Dumper( $args );
      $heap->{wheel} = POE::Wheel::ReadWrite->new(
-   	Handle => $args->{socket},
-   	Filter => POE::Filter::Line->new(),
-   	InputEvent => '_conn_input',
-   	ErrorEvent => '_conn_error',
+      Handle => $args->{socket},
+      Filter => POE::Filter::Line->new(),
+      InputEvent => '_conn_input',
+      ErrorEvent => '_conn_error',
      );
      return;
    }
-   
+
    sub _failed {
      warn Dumper( $_[ARG0] );
      return;
    }
-   
+
    sub _conn_input {
      warn $_[ARG0], "\n";
      return;
    }
-   
+
    sub _conn_error {
      delete $_[HEAP]->{wheel};
      return;
    }
-  
+
 =head1 DESCRIPTION
 
-POE::Component::Client::SOCKS provides SOCKSification services to other POE sessions and components. It 
-accepts connection requests and deals with all the SOCKS negotiation on your behalf. It returns either a 
+POE::Component::Client::SOCKS provides SOCKSification services to other POE sessions and components. It
+accepts connection requests and deals with all the SOCKS negotiation on your behalf. It returns either a
 SuccessEvent which will have a shiny socket handle for you to use or an FailureEvent which should say what went wrong.
 
 SOCKS 4 and 4a based servers are supported.
@@ -433,7 +429,7 @@ of SOCKS connections on your behalf. Or you may use 'connect' and 'bind' to brok
 
 =item C<spawn>
 
-Creates a new POE::Component::Client::SOCKS session that may be used lots of times. Takes the following optional 
+Creates a new POE::Component::Client::SOCKS session that may be used lots of times. Takes the following optional
 parameters:
 
   'alias', set an alias that you can use to address the component later;
@@ -443,7 +439,7 @@ Returns an object.
 
 =item C<connect>
 
-Creates a one-shot POE::Component::Client::SOCKS session that will connect to a SOCKS server and negotiate a 
+Creates a one-shot POE::Component::Client::SOCKS session that will connect to a SOCKS server and negotiate a
 CONNECT. Takes the following parameters ( mandatory ones are indicated ):
 
   'SocksProxy', the SOCKS server that you want to connect to (Mandatory);
@@ -457,7 +453,7 @@ Takes any number of arbitary parameters that will passed through to the SuccessE
 
 =item C<bind>
 
-Creates a one-shot POE::Component::Client::SOCKS session that will connect to a SOCKS server and negotiate a 
+Creates a one-shot POE::Component::Client::SOCKS session that will connect to a SOCKS server and negotiate a
 BIND. Takes the following parameters ( mandatory ones are indicated ):
 
   'SocksProxy', the SOCKS server that you want to connect to (Mandatory);
@@ -477,7 +473,7 @@ Takes any number of arbitary parameters that will passed through to the SuccessE
 
 =item C<connect>
 
-Connect to a SOCKS server and negotiate a 
+Connect to a SOCKS server and negotiate a
 CONNECT. Takes the following parameters ( mandatory ones are indicated ):
 
   'SocksProxy', the SOCKS server that you want to connect to (Mandatory);
@@ -491,7 +487,7 @@ Takes any number of arbitary parameters that will passed through to the SuccessE
 
 =item C<bind>
 
-Connect to a SOCKS server and negotiate a 
+Connect to a SOCKS server and negotiate a
 BIND. Takes the following parameters ( mandatory ones are indicated ):
 
   'SocksProxy', the SOCKS server that you want to connect to (Mandatory);
@@ -517,7 +513,7 @@ Terminates the component. Disconnects any pending SOCKS requests.
 
 =item C<connect>
 
-Connect to a SOCKS server and negotiate a 
+Connect to a SOCKS server and negotiate a
 CONNECT. Takes the following parameters ( mandatory ones are indicated ):
 
   'SocksProxy', the SOCKS server that you want to connect to (Mandatory);
@@ -531,7 +527,7 @@ Takes any number of arbitary parameters that will passed through to the SuccessE
 
 =item C<bind>
 
-Connect to a SOCKS server and negotiate a 
+Connect to a SOCKS server and negotiate a
 BIND. Takes the following parameters ( mandatory ones are indicated ):
 
   'SocksProxy', the SOCKS server that you want to connect to (Mandatory);
@@ -566,7 +562,7 @@ All the parameters passed to 'connect' or 'bind' will be present, plus:
   'socks_response', an arrayref consisting of the reply from the SOCKS server:
 	            the result code, the dest IP and the dest port.
 
-For a BIND, the dest IP and the dest port are the address and port that the SOCKS server has opened for 
+For a BIND, the dest IP and the dest port are the address and port that the SOCKS server has opened for
 listening.
 
 =item C<FailureEvent>
@@ -587,16 +583,6 @@ If the SOCKS server rejected our request for some reason the following will exis
 		 request.
 
 =back
-
-=head1 AUTHOR
-
-Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
-
-=head1 LICENSE
-
-Copyright E<copy> Chris Williams.
-
-This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
